@@ -20,6 +20,7 @@ import com.example.exception.ResourceNotFoundException;
 import com.example.model.Task;
 import com.example.repository.TaskDetailRepository;
 import com.example.repository.TaskRepository;
+import com.example.service.TaskService;
 
 //@CrossOrigin(origins = "http://localhost:8080")
 @CrossOrigin(origins = "*")
@@ -27,6 +28,12 @@ import com.example.repository.TaskRepository;
 				// methods should be be bound to the web response body.
 @RequestMapping("/api") // all Apis’ url in the controller will start with /api
 public class TaskController {
+
+	private final TaskService taskService;
+
+	public TaskController(TaskService taskService) {
+		this.taskService = taskService;
+	}
 
 	// Way to create Spring Rest Controller to process HTTP requests
 
@@ -37,18 +44,13 @@ public class TaskController {
 	private TaskDetailRepository tDRepo;
 
 	@GetMapping("/tasks")
-	public ResponseEntity<List<Task>> getAllTasks(@RequestParam(required = false) String title) {
+	public List<Task> getAllTasks(@RequestParam(required = false) String title) {
 
 		if (title == null)
-			tRepo.findAll();
+			return tRepo.findAll();
 		else
-			tRepo.findByTitleContaining(title);
+			return tRepo.findByTitleContaining(title);
 
-		if (tRepo.findAll().isEmpty() || tRepo.findByTitleContaining(title).isEmpty()) {
-			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-		}
-
-		return new ResponseEntity<>(HttpStatus.OK);
 	}
 	/*
 	 * public List<Task> getAllTasks(@RequestParam(required = false) String title) {
@@ -72,20 +74,25 @@ public class TaskController {
 	 */
 
 	@GetMapping("/tasks/{id}")
-	public ResponseEntity<Task> getTaskById(@PathVariable("id") long id) {
-		/*
-		 * Optional<Task> t = tRepo.findById(id);
-		 * 
-		 * if (t.isPresent()) { return new ResponseEntity<>(t.get(), HttpStatus.OK); }
-		 * else { return new ResponseEntity<>(HttpStatus.NOT_FOUND); }
-		 */
-		Task task = tRepo.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Not found Task with id = " + id));
-
+	public ResponseEntity<Task> getTaskById(@PathVariable("id") Long id) {
+		Task task = taskService.findTaskById(id);
 		return new ResponseEntity<>(task, HttpStatus.OK);
 	}
-
+	// public ResponseEntity<Task> getTaskById(@PathVariable("id") long id) {
 	/*
+	 * Optional<Task> t = tRepo.findById(id);
+	 * 
+	 * if (t.isPresent()) { return new ResponseEntity<>(t.get(), HttpStatus.OK); }
+	 * else { return new ResponseEntity<>(HttpStatus.NOT_FOUND); }
+	 */
+	/*
+	 * Task task = tRepo.findById(id) .orElseThrow(() -> new
+	 * ResourceNotFoundException("Not found Task with id = " + id));
+	 * 
+	 * return new ResponseEntity<>(task, HttpStatus.OK); }
+	 * 
+	 * /*
+	 * 
 	 * @GetMapping("/tutorials") public ResponseEntity<List<Tutorial>>
 	 * getAllTutorials(@RequestParam(required = false) String title) {
 	 * List<Tutorial> tutorials = new ArrayList<Tutorial>();
